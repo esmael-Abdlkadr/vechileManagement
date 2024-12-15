@@ -6,7 +6,5 @@ interface TokenPayload {
 
 export const generateAccessToken = (id: string): string => {
   const payload: TokenPayload = { id };
-  return jwt.sign(payload, process.env.JWT_SECRET as string, {
-    expiresIn: process.env.JWT_EXPIRES_IN || "15m",
-  });
+  return jwt.sign(payload, process.env.JWT_SECRET as string, {});
 };

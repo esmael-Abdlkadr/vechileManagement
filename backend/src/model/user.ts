@@ -66,7 +66,12 @@ userScheme.pre("save", async function (next) {
 });
 
 // password compare method
-userScheme.methods.comparePassword = comparePassword;
+userScheme.methods.comparePassword = async function (
+  candidatePassword: string,
+  userPassword: string
+) {
+  return await comparePassword({ candidatePassword, userPassword });
+};
 // password reset token generator
 userScheme.methods.createPasswordResetToken = function () {
   const { resetToken, hashedToken, expires } = generatePasswordResetToken();
@@ -89,4 +94,4 @@ userScheme.methods.toJSON = function () {
   return userObject;
 };
 const User = model<IUser>("User", userScheme);
-export default User;
+export { IUser, User };

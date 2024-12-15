@@ -6,7 +6,7 @@ interface AuthData {
   password: string;
 }
 interface AuthResponse {
-  accessToken: string;
+  token: string;
   user: {
     id: string;
     firstName: string;
@@ -40,8 +40,10 @@ const signup = async (data: SignUpData) => {
 
 const login = async (data: AuthData) => {
   try {
+    console.log("data", data);
     const response = await apiCall<AuthResponse>(API_ENDPOINTS.LOGIN, data);
     showToast("Login sucessfully", "success");
+    console.log("response", response);
 
     return response;
   } catch (err: any) {

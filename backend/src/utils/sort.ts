@@ -1,4 +1,4 @@
-const allowedSortFields = ["createdAt", "bookingDate", "price"];
+const allowedSortFields = ["createdAt"];
 const allowedSortDirections = ["asc", "desc"];
 interface SortQuery {
   [key: string]: 1 | -1;
