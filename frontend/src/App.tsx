@@ -8,6 +8,7 @@ import ProtectedRoute from "./utils/ProtectedRoute";
 import Layout from "./pages/Layout";
 import VehicleTable from "./pages/Vechiles";
 import useAuth from "./store/useAuth";
+import ReportView from "./pages/ReportView";
 
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const PageNotFound = lazy(() => import("./pages/pageNotFound"));
@@ -51,6 +52,7 @@ function App() {
           <Route path="/dashboard" element={<ProtectedRoute />}>
             <Route element={<Layout />}>
               <Route index element={<VehicleTable />} />
+              <Route path="report-view" element={<ReportView />} />
             </Route>
           </Route>
           <Route path="*" element={<PageNotFound />} />

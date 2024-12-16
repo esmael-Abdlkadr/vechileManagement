@@ -8,6 +8,6 @@
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "outDir": "./dist"
   },
-  "include": ["src/**/*.ts", "src/types/**/*.d.ts"],
+  "include": ["src/**/*.ts", "src/types/**/*.d.ts", "seedScript.ts"],
   "exclude": ["node_modules"]
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, SetStateAction } from "react";
+import Papa from "papaparse";
 import { useDeleteVechile, useGetAllVechiles } from "../hooks/vechile";
 import Spinner from "../components/Spinner";
 import Modal from "../components/Modal";
@@ -12,6 +13,7 @@ import {
 import AddNewVechile from "./AddNewVechile";
 import ConfirmationModal from "../components/ConfirmationModal";
 import UpdateVechile from "../sections/UpdateVechiles";
+import { useNavigate } from "react-router-dom";
 interface Vehicle {
   _id: string;
   name: string;
@@ -29,8 +31,9 @@ interface GetAllVehiclesResponse {
   pages: number;
 }
 function VehicleTable() {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  const [limit, setLimit] = useState(10);
   const [sortField, setSortField] = useState("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedVehicle, setSelectedVehicle] = useState<{
@@ -56,25 +59,42 @@ function VehicleTable() {
     useGetAllVechiles({
       page,
       limit,
-      // sortField,
-      // sortDirection,
+      sortDirection,
     }) as {
       data?: GetAllVehiclesResponse;
       isLoading: boolean;
       isError: boolean;
     };
-  useGetAllVechiles({
-    page,
-    limit,
-    // sortField,
-    // sortDirection,
-  });
+
   const { deleteVechiles } = useDeleteVechile(selectedVehicle?._id || "");
 
   const vehicleData = data?.vehicles;
   // const totalVehicles = data?.total;
   const totalPages = data?.pages;
+  const handleDownloadCSV = () => {
+    // Format the data
+    const csvData = vehicleData?.map((vehicle) => ({
+      Name: vehicle.name,
+      Status: vehicle.status,
+      LicensePlate: vehicle.licensePlate,
+      Make: vehicle.make,
+      Model: vehicle.vehicleModel,
+      Year: vehicle.year,
+    }));
 
+    // Convert to CSV
+    const csvString = Papa.unparse(csvData);
+
+    // Create a downloadable file
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    // Create an invisible anchor tag and trigger download
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `vehicles_page_${page || 1}.csv`);
+    link.click();
+  };
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= (totalPages ?? 1)) {
       setPage(newPage);
@@ -90,7 +110,11 @@ function VehicleTable() {
   ) => {
     setSortDirection(e.target.value as "asc" | "desc");
   };
-
+  const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setLimit(value === "All" ? Number.MAX_SAFE_INTEGER : parseInt(value, 10));
+    setPage(1); // Reset to first page when limit changes
+  };
   const handleViewDetails = (
     vehicle: SetStateAction<{ _id: string } | null>
   ) => {
@@ -171,6 +195,17 @@ function VehicleTable() {
           <Button
             title="Add New Vechile"
             action={() => setAddNewVechileModal(true)}
+          />
+        </div>
+        {/* dowload CSv */}
+        <div>
+          <Button title="Download CSV" action={handleDownloadCSV} />
+        </div>
+        {/* report View */}
+        <div>
+          <Button
+            title="View Report"
+            action={() => navigate("/dashboard/report-view")}
           />
         </div>
       </div>
@@ -282,6 +317,23 @@ function VehicleTable() {
         <span className="text-gray-700">
           Page {page} of {totalPages}
         </span>
+        <div className="mb-4">
+          <label htmlFor="limit" className="mr-2">
+            Items per page:
+          </label>
+          <select
+            id="limit"
+            value={limit === Number.MAX_SAFE_INTEGER ? "All" : limit}
+            onChange={handleLimitChange}
+            className="px-4 py-2 border border-gray-300 rounded"
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+            <option value="All">All</option>
+          </select>
+        </div>
         <button
           onClick={() => handlePageChange(page + 1)}
           disabled={page >= (totalPages || 1)}

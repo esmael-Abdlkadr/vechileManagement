@@ -24,8 +24,8 @@ export const addVechile = async (data: VechileData) => {
 export const getVechiles = async (filters: {
   page: number;
   limit: number;
-  // sortField: "createdAt";
-  // sortDirection: "asc" | "desc";
+  sortField: "createdAt";
+  sortDirection: "asc" | "desc";
 }) => {
   try {
     const queryParam = new URLSearchParams(
