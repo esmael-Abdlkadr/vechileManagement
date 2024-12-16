@@ -1,7 +1,7 @@
 import apiCall from "../../utils/apiHelper";
 import { API_ENDPOINTS } from "../apiEndpoints";
 import showToast from "../../utils/toastHelper";
-interface VechileData {
+interface VechileData extends Record<string, unknown> {
   name: string;
   status: string;
   licensePlate: string;
@@ -16,7 +16,7 @@ export const addVechile = async (data: VechileData) => {
     const response = await apiCall(API_ENDPOINTS.ADD_VEHICLE, data);
     showToast("Vechile added sucessfully", "success");
     return response;
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Add Vechile error", err);
     throw err;
   }
@@ -28,15 +28,17 @@ export const getVechiles = async (filters: {
   // sortDirection: "asc" | "desc";
 }) => {
   try {
-    const queryParam = new URLSearchParams(filters as any).toString();
+    const queryParam = new URLSearchParams(
+      filters as unknown as Record<string, string>
+    ).toString();
     const response = await apiCall(
       `${API_ENDPOINTS.GET_VEHICLES}?${queryParam}`,
       {},
       "GET"
     );
-    console.log("response", response);
+
     return response;
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Get Vechiles error", err);
     throw err;
   }
@@ -49,7 +51,7 @@ export const getVechile = async (id: string) => {
       "GET"
     );
     return response;
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Get Vechile error", err);
     throw err;
   }
@@ -63,7 +65,7 @@ export const updateVechile = async (id: string, data: VechileData) => {
     );
     showToast("Vechile updated sucessfully", "success");
     return response;
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Update Vechile error", err);
     throw err;
   }
@@ -73,7 +75,7 @@ export const deleteVechile = async (id: string) => {
     const response = await apiCall(`${API_ENDPOINTS.DELETE_VEHICLE}/${id}`);
     showToast("Vechile deleted sucessfully", "success");
     return response;
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Delete Vechile error", err);
     throw err;
   }

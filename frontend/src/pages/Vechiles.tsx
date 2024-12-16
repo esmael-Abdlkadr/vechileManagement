@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, SetStateAction } from "react";
 import { useDeleteVechile, useGetAllVechiles } from "../hooks/vechile";
 import Spinner from "../components/Spinner";
 import Modal from "../components/Modal";
@@ -12,33 +12,71 @@ import {
 import AddNewVechile from "./AddNewVechile";
 import ConfirmationModal from "../components/ConfirmationModal";
 import UpdateVechile from "../sections/UpdateVechiles";
-
+interface Vehicle {
+  _id: string;
+  name: string;
+  status: string;
+  licensePlate: string;
+  make: string;
+  vehicleModel: string;
+  year: number;
+  mileage: number;
+  fuelType: string;
+}
+interface GetAllVehiclesResponse {
+  vehicles: Vehicle[];
+  total: number;
+  pages: number;
+}
 function VehicleTable() {
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit] = useState(10);
   const [sortField, setSortField] = useState("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedVehicle, setSelectedVehicle] = useState<{
     _id: string;
+    status?: string;
+    name?: string;
+    licensePlate?: string;
+    make?: string;
+    vehicleModel?: string;
+    year?: number;
+    mileage?: number;
+    fuelType?: string;
   } | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [addNewVechileModal, setAddNewVechileModal] = useState(false);
   const [updateVechileModal, setUpdateVechileModal] = useState(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
-  const { data, isLoading, error } = useGetAllVechiles({
+  const {
+    data,
+    isLoading,
+    isError,
+  }: { data?: GetAllVehiclesResponse; isLoading: boolean; isError: boolean } =
+    useGetAllVechiles({
+      page,
+      limit,
+      // sortField,
+      // sortDirection,
+    }) as {
+      data?: GetAllVehiclesResponse;
+      isLoading: boolean;
+      isError: boolean;
+    };
+  useGetAllVechiles({
     page,
     limit,
     // sortField,
     // sortDirection,
   });
-  const { deleteVechiles } = useDeleteVechile(selectedVehicle?._id);
+  const { deleteVechiles } = useDeleteVechile(selectedVehicle?._id || "");
 
   const vehicleData = data?.vehicles;
-  const totalVehicles = data?.total;
+  // const totalVehicles = data?.total;
   const totalPages = data?.pages;
 
   const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
+    if (newPage >= 1 && newPage <= (totalPages ?? 1)) {
       setPage(newPage);
     }
   };
@@ -50,10 +88,12 @@ function VehicleTable() {
   const handleSortDirectionChange = (
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
-    setSortDirection(e.target.value);
+    setSortDirection(e.target.value as "asc" | "desc");
   };
 
-  const handleViewDetails = (vehicle) => {
+  const handleViewDetails = (
+    vehicle: SetStateAction<{ _id: string } | null>
+  ) => {
     console.log("vehicle", vehicle);
     setSelectedVehicle(vehicle);
     setIsModalOpen(true);
@@ -66,7 +106,7 @@ function VehicleTable() {
   const handleDelete = async () => {
     if (!selectedVehicle?._id) return;
     try {
-      await deleteVechiles(selectedVehicle._id);
+      await deleteVechiles();
       handleCloseModal();
     } catch (error) {
       console.error("Delete Vehicle Error:", error);
@@ -78,7 +118,7 @@ function VehicleTable() {
   }, [sortField, sortDirection]);
 
   if (isLoading) return <Spinner />;
-  if (error)
+  if (isError)
     return (
       <div className="text-center text-red-500">Error loading vehicles</div>
     );
@@ -184,30 +224,48 @@ function VehicleTable() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-y-200">
-            {vehicleData?.map((vehicle) => (
-              <tr key={vehicle._id}>
-                <td className="px-6 py-4 whitespace-nowrap">{vehicle.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {vehicle.status}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {vehicle.licensePlate}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">{vehicle.make}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {vehicle.vehicleModel}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">{vehicle.year}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <button
-                    onClick={() => handleViewDetails(vehicle)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
-                  >
-                    Actions
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {vehicleData?.map(
+              (vehicle: {
+                _id: string;
+                name: string;
+                status: string;
+                licensePlate: string;
+                make: string;
+                vehicleModel: string;
+                year: number;
+                mileage: number;
+                fuelType: string;
+              }) => (
+                <tr key={vehicle._id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {vehicle.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {vehicle.status}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {vehicle.licensePlate}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {vehicle.make}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {vehicle.vehicleModel}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {vehicle.year}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      onClick={() => handleViewDetails(vehicle)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
+                    >
+                      Actions
+                    </button>
+                  </td>
+                </tr>
+              )
+            )}
           </tbody>
         </table>
       </div>
@@ -226,7 +284,7 @@ function VehicleTable() {
         </span>
         <button
           onClick={() => handlePageChange(page + 1)}
-          disabled={page >= totalPages}
+          disabled={page >= (totalPages || 1)}
           className="px-4 py-2 bg-gray-200 text-gray-500 rounded"
         >
           Next

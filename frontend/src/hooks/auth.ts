@@ -1,8 +1,14 @@
-import { useMutation } from "@tanstack/react-query";
-import { login, logout, signup } from "../API/services/authService";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  changePassword,
+  login,
+  myInfo,
+  signup,
+  updateMe,
+} from "../API/services/authService";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../store/useAuth";
-const useSignup = () => {
+export const useSignup = () => {
   const navigate = useNavigate();
   const { setIsAuthenticated, setIsLoading, setUser } = useAuth();
   const { mutateAsync, isError } = useMutation({
@@ -31,7 +37,7 @@ const useSignup = () => {
   return { signup: mutateAsync, isError };
 };
 
-const useLogin = () => {
+export const useLogin = () => {
   const navigate = useNavigate();
   const { setIsAuthenticated, setIsLoading, setUser } = useAuth();
   const { mutateAsync, isError } = useMutation({
@@ -44,7 +50,7 @@ const useLogin = () => {
       if (data?.token) {
         console.log("data", data);
         console.log("data.token", data.token);
-        localStorage.setItem("token", data.token);
+        localStorage.setItem("accessToken", data.token);
         setIsAuthenticated(true);
         setUser({
           id: data.user.id,
@@ -63,26 +69,31 @@ const useLogin = () => {
   return { login: mutateAsync, isError };
 };
 
-const useLogout = () => {
-  const navigate = useNavigate();
-  const { setIsAuthenticated, clearUser } = useAuth();
-  const { mutateAsync, isError } = useMutation({
-    mutationFn: logout,
-    mutationKey: ["logout"],
+export const useGetMyInfo = () => {
+  const { data, isError } = useQuery({
+    queryFn: myInfo,
+    queryKey: ["myInfo"],
+  });
+  return { myInfo: data, isError };
+};
+export const useUpdateMe = () => {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isError, isPending } = useMutation({
+    mutationFn: updateMe,
+    mutationKey: ["updateMe"],
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myInfo"] });
+    },
+  });
+  return { updateMe: mutateAsync, isError, isPending };
+};
+export const useChnangePassword = () => {
+  const { mutateAsync, isError, isPending } = useMutation({
+    mutationFn: changePassword,
+    mutationKey: ["changePassword"],
     onError: (error) => {
       console.log(error);
     },
-    onSuccess: () => {
-      localStorage.removeItem("token");
-      setIsAuthenticated(false);
-      clearUser();
-
-      navigate("/login", { replace: true });
-      // clear the history stack.
-      window.history.replaceState(null, "", "/login");
-    },
   });
-  return { logout: mutateAsync, isError };
+  return { changePassword: mutateAsync, isError, isPending };
 };
-
-export { useSignup, useLogin, useLogout };

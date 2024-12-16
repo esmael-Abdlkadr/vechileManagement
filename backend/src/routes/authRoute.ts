@@ -13,4 +13,8 @@ router.post(
   validate(validationSchema.loginSchema),
   authController.login
 );
+router.use(authController.protect);
+router.get("/me", authController.protect, authController.myInfo);
+router.patch("/updateMe", authController.protect, authController.updateMe);
+router.post("/changePassword", authController.ChangePassword);
 export default router;

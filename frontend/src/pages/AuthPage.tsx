@@ -6,11 +6,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useLogin, useSignup } from "../hooks/auth";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 
-interface IFormInput {
-  firstName?: string;
-  lastName?: string;
+interface AuthData {
   email: string;
   password: string;
+}
+
+interface IFormInput extends AuthData {
+  firstName?: string;
+  lastName?: string;
 }
 
 // Define schemas for login and signup
@@ -49,8 +52,8 @@ function AuthPage() {
     formState: { errors },
   } = useForm<IFormInput>({
     defaultValues: {
-      firstName: "",
-      lastName: "",
+      firstName: isSignIn ? undefined : "",
+      lastName: isSignIn ? undefined : "",
       email: "",
       password: "",
     },
@@ -66,9 +69,13 @@ function AuthPage() {
   const onSubmit: SubmitHandler<IFormInput> = async (data) => {
     try {
       if (isSignIn) {
-        await login(data);
+        await login({ email: data.email, password: data.password });
       } else {
-        await signup(data);
+        await signup({
+          ...data,
+          firstName: data.firstName || "",
+          lastName: data.lastName || "",
+        });
       }
     } catch (error) {
       console.error("Authentication Error:", error);
